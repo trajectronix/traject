@@ -7,6 +7,6 @@
 .xmake
 build
 .vs/
-.*/*
+
 .cmake
 !CMakeLists.txt

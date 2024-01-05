@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
+      run: cmake cmake_build/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
     - name: make
       run: make -j
     - name: make test
@@ -26,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
+      run: cmake cmake_build/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
     - name: make
       run: make -j
     - name: make test
@@ -38,7 +38,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=On
+      run: cmake cmake_build/ -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=On
     - name: msbuild
       run: msbuild
     - name: msbuild test
