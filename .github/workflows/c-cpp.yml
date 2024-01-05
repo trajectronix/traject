@@ -1,0 +1,45 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: cmake
+      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
+    - name: make
+      run: make -j
+    - name: make test
+      run: make test -j
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: cmake
+      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=On
+    - name: make
+      run: make -j
+    - name: make test
+      run: make test -j
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: cmake
+      run: cmake fast_io_readwriterevamp/ -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=On
+    - name: msbuild
+      run: msbuild
+    - name: msbuild test
+      run: msbuild test
