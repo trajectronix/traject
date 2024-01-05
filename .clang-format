@@ -1,0 +1,12 @@
+---
+BasedOnStyle: Google
+UseTab: ForContinuationAndIndentation 
+IndentWidth: 4
+TabWidth: 4
+IndentCaseLabels: false
+ColumnLimit: 0
+BreakBeforeBraces: Attach
+AccessModifierOffset: -4
+SortIncludes: false
+---
+Language: Cpp
