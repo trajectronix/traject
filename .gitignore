@@ -10,5 +10,4 @@ build
 .*/*
 .cmake
 !CMakeLists.txt
-
-custom/git_commit_hash.h
+!.github
