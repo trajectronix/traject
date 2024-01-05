@@ -10,4 +10,3 @@ build
 .*/*
 .cmake
 !CMakeLists.txt
-!.github
