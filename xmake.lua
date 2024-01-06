@@ -11,10 +11,6 @@ add_rules("mode.debug", "mode.release")
 
 set_allowedmodes("release", "debug")
 
-set_languages("c11", "cxx23")
-
-set_kind("binary")
-
 set_encodings("utf-8")
 
 if is_plat("msdosdjgpp") then
@@ -48,240 +44,280 @@ option("cppstdlib")
 	set_values("default", "libstdc++", "libc++")
 option_end()
 
+target("mimalloc")
+	set_kind("static")
+	set_languages("c11", "cxx20")
+	add_options("native")
 
-target("traject") -- Traject
-add_options("native")
+	if is_mode("release") then
+		set_optimize("aggressive")
+		set_strip("all")
+		set_policy("build.optimization.lto", true)
+	elseif is_mode("debug") then
+		set_optimize("none")
+		set_symbols("debug")
+		add_defines("_DEBUG")
+	end
 
-if is_mode("release") then
-	set_optimize("aggressive")
-	set_strip("all")
-	set_policy("build.optimization.lto", true)
-elseif is_mode("debug") then
-	set_optimize("none")
-	set_symbols("debug")
-	add_defines("_DEBUG")
+	add_includedirs("third_party/mimalloc/include")
+	add_files("third_party/mimalloc/src/static.c")
+target_end()
+
+target("tbb")
+	set_kind("static")
+	set_languages("c11", "cxx20")
+	add_options("native")
+
+	if is_mode("release") then
+		set_optimize("aggressive")
+		set_strip("all")
+		set_policy("build.optimization.lto", true)
+	elseif is_mode("debug") then
+		set_optimize("none")
+		set_symbols("debug")
+		add_defines("_DEBUG")
+	end
+
+	add_includedirs("third_party/tbb/include")
+	add_files("third_party/tbb/src/tbb/**.c")
+	add_files("third_party/tbb/src/tbb/**.cpp")
+target_end()
+
+target("traject")
+	set_kind("binary")
+	set_languages("c11", "cxx23")
+	add_options("native")
+
+	if is_mode("release") then
+		set_optimize("aggressive")
+		set_strip("all")
+		set_policy("build.optimization.lto", true)
+	elseif is_mode("debug") then
+		set_optimize("none")
+		set_symbols("debug")
+		add_defines("_DEBUG")
+
+		if is_plat("windows") then
+			add_cxflags("/guard:cf")
+		else
+			--add_cxflags("-fsanitize=memory")
+			--add_cxflags("-fsanitize=thread")
+			--add_cxflags("-fsanitize=undefined")
+			--add_cxflags("-fsanitize=leak")
+		end
+		--add_cxflags("-fsanitize=address")
+	end
 
 	if is_plat("windows") then
-		add_cxflags("/guard:cf")
-	else
-		--add_cxflags("-fsanitize=memory")
-		--add_cxflags("-fsanitize=thread")
-		--add_cxflags("-fsanitize=undefined")
-		--add_cxflags("-fsanitize=leak")
-	end
-	--add_cxflags("-fsanitize=address")
-end
+		if is_mode("debug") then
+			set_runtimes("MTd")
+		else
+			set_fpmodels("fast")
+			add_cxflags("-GL")
+			add_ldflags("-LTCG")
+			set_runtimes("MT")
+		end
+		add_cxflags("-GR-")
 
-if is_plat("windows") then
-	if is_mode("debug") then
-		set_runtimes("MTd")
-	else
-		set_fpmodels("fast")
-		add_cxflags("-GL")
-		add_ldflags("-LTCG")
-		set_runtimes("MT")
-	end
-	add_cxflags("-GR-")
+		local opt_name = get_config("min-win32-sys")
+		if opt_name == "default" then	
+		elseif opt_name == "WIN10" then
+			add_defines("_WIN32_WINNT=0x0A00")
+		elseif opt_name == "WINBLUE" then
+			add_defines("_WIN32_WINNT=0x0603")
+		elseif opt_name == "WIN8" then
+			add_defines("_WIN32_WINNT=0x0602")
+		elseif opt_name == "WIN7" then
+			add_defines("_WIN32_WINNT=0x0601")
+		elseif opt_name == "WS08" then
+			add_defines("_WIN32_WINNT=0x0600")
+		elseif opt_name == "VISTA" then
+			add_defines("_WIN32_WINNT=0x0600")
+		elseif opt_name == "WS03" then
+			add_defines("_WIN32_WINNT=0x0502")
+		elseif opt_name == "WINXP" then
+			add_defines("_WIN32_WINNT=0x0501")
+		elseif opt_name == "WINME" then
+			add_defines("_WIN32_WINDOWS=0x0490")
+			add_defines("_WIN32_WINNT=0x0490")
+		elseif opt_name == "WIN98" then
+			add_defines("_WIN32_WINDOWS=0x0410")
+			add_defines("_WIN32_WINNT=0x0410")
+		elseif opt_name == "WIN95" then
+			add_defines("_WIN32_WINDOWS=0x0400")
+			add_defines("_WIN32_WINNT=0x0400")
+		else
+			error("invalid value")
+		end
 
-	local opt_name = get_config("min-win32-sys")
-	if opt_name == "default" then	
-	elseif opt_name == "WIN10" then
-		add_defines("_WIN32_WINNT=0x0A00")
-	elseif opt_name == "WINBLUE" then
-		add_defines("_WIN32_WINNT=0x0603")
-	elseif opt_name == "WIN8" then
-		add_defines("_WIN32_WINNT=0x0602")
-	elseif opt_name == "WIN7" then
-		add_defines("_WIN32_WINNT=0x0601")
-	elseif opt_name == "WS08" then
-		add_defines("_WIN32_WINNT=0x0600")
-	elseif opt_name == "VISTA" then
-		add_defines("_WIN32_WINNT=0x0600")
-	elseif opt_name == "WS03" then
-		add_defines("_WIN32_WINNT=0x0502")
-	elseif opt_name == "WINXP" then
-		add_defines("_WIN32_WINNT=0x0501")
-	elseif opt_name == "WINME" then
-		add_defines("_WIN32_WINDOWS=0x0490")
-		add_defines("_WIN32_WINNT=0x0490")
-	elseif opt_name == "WIN98" then
-		add_defines("_WIN32_WINDOWS=0x0410")
-		add_defines("_WIN32_WINNT=0x0410")
-	elseif opt_name == "WIN95" then
-		add_defines("_WIN32_WINDOWS=0x0400")
-		add_defines("_WIN32_WINNT=0x0400")
-	else
-		error("invalid value")
-	end
+	elseif is_plat("mingw") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
 
-elseif is_plat("mingw") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
-	end
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
 
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
+		add_cxflags("-static")
+		add_syslinks("ntdll")
 
-	add_cxflags("-static")
-	add_syslinks("ntdll")
+		local opt_name = get_config("min-win32-sys")
+		if opt_name == "default" then	
+		elseif opt_name == "WIN10" then
+			add_defines("_WIN32_WINNT=0x0A00")
+		elseif opt_name == "WINBLUE" then
+			add_defines("_WIN32_WINNT=0x0603")
+		elseif opt_name == "WIN8" then
+			add_defines("_WIN32_WINNT=0x0602")
+		elseif opt_name == "WIN7" then
+			add_defines("_WIN32_WINNT=0x0601")
+		elseif opt_name == "WS08" then
+			add_defines("_WIN32_WINNT=0x0600")
+		elseif opt_name == "VISTA" then
+			add_defines("_WIN32_WINNT=0x0600")
+		elseif opt_name == "WS03" then
+			add_defines("_WIN32_WINNT=0x0502")
+		elseif opt_name == "WINXP" then
+			add_defines("_WIN32_WINNT=0x0501")
+		elseif opt_name == "WINME" then
+			add_defines("_WIN32_WINDOWS=0x0490")
+		elseif opt_name == "WIN98" then
+			add_defines("_WIN32_WINDOWS=0x0410")
+		elseif opt_name == "WIN95" then
+			add_defines("_WIN32_WINDOWS=0x0400")
+		else
+			error("invalid value")
+		end
 
-	local opt_name = get_config("min-win32-sys")
-	if opt_name == "default" then	
-	elseif opt_name == "WIN10" then
-		add_defines("_WIN32_WINNT=0x0A00")
-	elseif opt_name == "WINBLUE" then
-		add_defines("_WIN32_WINNT=0x0603")
-	elseif opt_name == "WIN8" then
-		add_defines("_WIN32_WINNT=0x0602")
-	elseif opt_name == "WIN7" then
-		add_defines("_WIN32_WINNT=0x0601")
-	elseif opt_name == "WS08" then
-		add_defines("_WIN32_WINNT=0x0600")
-	elseif opt_name == "VISTA" then
-		add_defines("_WIN32_WINNT=0x0600")
-	elseif opt_name == "WS03" then
-		add_defines("_WIN32_WINNT=0x0502")
-	elseif opt_name == "WINXP" then
-		add_defines("_WIN32_WINNT=0x0501")
-	elseif opt_name == "WINME" then
-		add_defines("_WIN32_WINDOWS=0x0490")
-	elseif opt_name == "WIN98" then
-		add_defines("_WIN32_WINDOWS=0x0410")
-	elseif opt_name == "WIN95" then
-		add_defines("_WIN32_WINDOWS=0x0400")
-	else
-		error("invalid value")
-	end
+	elseif is_plat("linux") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
+		
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
 
-elseif is_plat("linux") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
-	end
+		add_cxflags("-static")
+		if is_arch("x86_64") then
+			-- none
+		elseif is_arch("i386") then
+			-- none
+		elseif is_arch("loongarch64") then
+			-- none
+		end
+
+	elseif is_plat("msdosdjgpp") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
+		
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
+
+		add_cxflags("-static")
+	elseif is_plat("bds") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
 	
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
-
-	add_cxflags("-static")
-	if is_arch("x86_64") then
-		-- none
-	elseif is_arch("i386") then
-		-- none
-	elseif is_arch("loongarch64") then
-		-- none
-	end
-
-elseif is_plat("msdosdjgpp") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
-	end
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
 	
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
+		add_cxflags("-static")
+	elseif is_plat("macosx", "iphoneos", "watchos") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
 
-	add_cxflags("-static")
-elseif is_plat("bds") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
-	end
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
+
+		add_cxflags("-static")
+
+	elseif is_plat("cross") then
+		add_cxflags("-fno-rtti")
+		if is_mode("release") then
+			add_cxflags("-fomit-frame-pointer")
+			add_cxflags("-fno-exceptions")
+			add_cxflags("-fno-unwind-tables")
+			add_cxflags("-fno-asynchronous-unwind-tables")
+		end
 	
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
+		local csl_name = get_config("cppstdlib")
+		if csl_name == "libstdc++" then
+			add_cxflags("-stdlib=libstdc++")
+		elseif csl_name == "libc++" then
+			add_cxflags("-stdlib=libc++")
+		elseif csl_name == "default" then
+		else
+			error("invalid name")
+		end
+		add_cxflags("-static-libstdc++")
 
-	add_cxflags("-static")
-elseif is_plat("macosx", "iphoneos", "watchos") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
+		add_cxflags("-static")
 	end
 
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
-
-	add_cxflags("-static")
-
-elseif is_plat("cross") then
-	add_cxflags("-fno-rtti")
-	if is_mode("release") then
-		add_cxflags("-fomit-frame-pointer")
-		add_cxflags("-fno-exceptions")
-		add_cxflags("-fno-unwind-tables")
-		add_cxflags("-fno-asynchronous-unwind-tables")
-	end
-	
-	local csl_name = get_config("cppstdlib")
-	if csl_name == "libstdc++" then
-		add_cxflags("-stdlib=libstdc++")
-	elseif csl_name == "libc++" then
-		add_cxflags("-stdlib=libc++")
-	elseif csl_name == "default" then
-	else
-		error("invalid name")
-	end
-	add_cxflags("-static-libstdc++")
-
-	add_cxflags("-static")
-end
-
-	add_includedirs("fast_io_readwriterevamp/include")
+	add_includedirs("third_party/fast_io_readwriterevamp/include")
 
 	if is_plat("windows", "mingw") then
 		add_files("traject/windows/set_native_console_cp.cpp")
