@@ -63,26 +63,6 @@ target("mimalloc")
 	add_files("third_party/mimalloc/src/static.c")
 target_end()
 
-target("tbb")
-	set_kind("static")
-	set_languages("c11", "cxx20")
-	add_options("native")
-
-	if is_mode("release") then
-		set_optimize("aggressive")
-		set_strip("all")
-		set_policy("build.optimization.lto", true)
-	elseif is_mode("debug") then
-		set_optimize("none")
-		set_symbols("debug")
-		add_defines("_DEBUG")
-	end
-
-	add_includedirs("third_party/tbb/include")
-	add_files("third_party/tbb/src/tbb/**.c")
-	add_files("third_party/tbb/src/tbb/**.cpp")
-target_end()
-
 target("traject")
 	set_kind("binary")
 	set_languages("c11", "cxx23")
