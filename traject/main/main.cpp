@@ -6,6 +6,8 @@
 #include "../clpara/impl.h"
 #include "../utils/version.h"
 
+#include "../run/run.h"
+
 int main(int argc, char **argv) {
 	auto &parse_res{::traject::parsing_result};
 	
@@ -28,6 +30,8 @@ int main(int argc, char **argv) {
 						 ::traject::traject_version,
 						 u8"\033[0m\n"
 	);
+
+	run();
 
 	return 0;
 }
