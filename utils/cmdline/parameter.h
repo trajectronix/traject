@@ -224,7 +224,7 @@ struct parameters_hash_table {
 	static_assert(hash_table_size > 1);
 
 	::fast_io::freestanding::array<ht_para_cpos, hash_table_size> ht{};
-	::std::conditional_t<conflict_size, ::fast_io::freestanding::array<conflict_table, conflict_size>, ::std::in_place_t>ct{};
+	::std::conditional_t<static_cast<bool>(conflict_size), ::fast_io::freestanding::array<conflict_table, conflict_size>, ::std::in_place_t>ct{};
 };
 
 template <::std::size_t hash_table_size, ::std::size_t conflict_size, ::std::size_t N>
